@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, validator
 
@@ -19,7 +20,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str = Field(..., min_length=8, max_length=200)
-    security_question_id: int
+    security_question_id: UUID
     security_answer: str = Field(..., min_length=1, max_length=200)
     is_active: Optional[bool] = True
     
@@ -61,7 +62,7 @@ class UserLogin(BaseModel):
 # Response schemas
 class User(UserBase):
     """Schema for user response"""
-    id: int
+    id: UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -110,13 +111,13 @@ class RefreshTokenBase(BaseModel):
 
 class RefreshTokenCreate(RefreshTokenBase):
     """Schema for creating refresh token"""
-    user_id: int
+    user_id: UUID
 
 
 class RefreshToken(RefreshTokenBase):
     """Schema for refresh token response"""
-    id: int
-    user_id: int
+    id: UUID
+    user_id: UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -133,7 +134,7 @@ class SecurityQuestionBase(BaseModel):
 
 class SecurityQuestion(SecurityQuestionBase):
     """Schema for security question response"""
-    id: int
+    id: UUID
     created_at: datetime
 
     class Config:

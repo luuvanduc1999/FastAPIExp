@@ -1,5 +1,6 @@
 from typing import Optional, List
 from datetime import datetime, timedelta
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
@@ -17,7 +18,7 @@ class UserRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_by_id(self, user_id: int) -> Optional[User]:
+    async def get_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by ID"""
         result = await self.db.execute(select(User).filter(User.id == user_id))
         return result.scalar_one_or_none()
@@ -55,7 +56,7 @@ class UserRepository:
         await self.db.refresh(db_user)
         return db_user
 
-    async def update_password(self, user_id: int, new_password: str) -> bool:
+    async def update_password(self, user_id: UUID, new_password: str) -> bool:
         """Update user password"""
         user = await self.get_by_id(user_id)
         if not user:
@@ -120,7 +121,7 @@ class SecurityQuestionRepository:
         )
         return result.scalars().all()
 
-    async def get_by_id(self, question_id: int) -> Optional[SecurityQuestion]:
+    async def get_by_id(self, question_id: UUID) -> Optional[SecurityQuestion]:
         """Get security question by ID"""
         result = await self.db.execute(
             select(SecurityQuestion).filter(SecurityQuestion.id == question_id)
@@ -195,7 +196,7 @@ class RefreshTokenRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_user_id(self, user_id: int) -> List[RefreshToken]:
+    async def get_by_user_id(self, user_id: UUID) -> List[RefreshToken]:
         """Get all refresh tokens for a user"""
         result = await self.db.execute(
             select(RefreshToken).filter(RefreshToken.user_id == user_id)
@@ -213,7 +214,7 @@ class RefreshTokenRepository:
         await self.db.commit()
         return True
 
-    async def revoke_all_user_tokens(self, user_id: int) -> int:
+    async def revoke_all_user_tokens(self, user_id: UUID) -> int:
         """Revoke all refresh tokens for a user"""
         tokens = await self.get_by_user_id(user_id)
         revoked_count = 0

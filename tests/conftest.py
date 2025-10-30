@@ -37,10 +37,21 @@ def client():
 
 
 @pytest.fixture
-def test_user():
-    """Test user data"""
+def test_user(client):
+    """Test user data with security question"""
+    # First, get available security questions
+    response = client.get("/api/v1/auth/security-questions")
+    questions = response.json()
+    
+    # If no questions exist, they will be created automatically
+    if not questions:
+        response = client.get("/api/v1/auth/security-questions")
+        questions = response.json()
+    
     return {
         "email": "test@example.com",
         "username": "testuser",
-        "password": "testpass123"
+        "password": "testpass123",
+        "security_question_id": str(questions[0]["id"]),
+        "security_answer": "test answer"
     }

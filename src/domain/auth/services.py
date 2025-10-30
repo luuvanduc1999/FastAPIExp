@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime
 from typing import Optional, List
+from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -144,7 +145,7 @@ class AuthService:
         """Revoke a specific refresh token"""
         return await self.refresh_token_repository.revoke_token(token)
 
-    async def revoke_all_user_tokens(self, user_id: int) -> int:
+    async def revoke_all_user_tokens(self, user_id: UUID) -> int:
         """Revoke all refresh tokens for a user"""
         return await self.refresh_token_repository.revoke_all_user_tokens(user_id)
 
