@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Column, DateTime, String, ForeignKey, Text
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-import GUID
+import uuid
 
 from src.core.database import Base
 
