@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Union
 import hashlib
+import secrets
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -21,11 +22,35 @@ def create_access_token(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     
-    to_encode = {"exp": expire, "sub": str(subject)}
+    to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
+
+
+def create_refresh_token() -> str:
+    """Create a secure random refresh token"""
+    return secrets.token_urlsafe(32)
+
+
+def verify_token(token: str, token_type: str = "access") -> Union[str, None]:
+    """Verify a JWT token and return the subject if valid"""
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        username: str = payload.get("sub")
+        token_type_from_payload: str = payload.get("type", "access")
+        
+        if username is None or token_type_from_payload != token_type:
+            return None
+            
+        return username
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.JWTError:
+        return None
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

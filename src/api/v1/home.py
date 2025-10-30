@@ -25,7 +25,7 @@ class PublicGreetingResponse(BaseModel):
 
 
 @router.get("/greeting", response_model=GreetingResponse)
-def get_greeting(current_user: User = Depends(get_current_user)):
+async def get_greeting(current_user: User = Depends(get_current_user)):
     """
     Get a personalized greeting message for the authenticated user.
     
@@ -57,7 +57,7 @@ def get_public_greeting():
 
 
 @router.get("/smart-greeting")
-def get_smart_greeting(
+async def get_smart_greeting(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ):
     """
@@ -77,7 +77,7 @@ def get_smart_greeting(
     
     try:
         # Try to get current user
-        from src.core.database import SessionLocal
+        from src.core.database import get_db
         from src.core.config import settings
         from jose import JWTError, jwt
         from src.domain.auth.services import AuthService
@@ -91,10 +91,9 @@ def get_smart_greeting(
             raise JWTError("Invalid token")
         
         # Get database session and user
-        db = SessionLocal()
-        try:
+        async for db in get_db():
             auth_service = AuthService(db)
-            user = auth_service.get_current_user(username=username)
+            user = await auth_service.get_current_user(username=username)
             
             if user is None:
                 raise JWTError("User not found")
@@ -109,8 +108,6 @@ def get_smart_greeting(
                 },
                 "status": "Bạn đã đăng nhập thành công"
             }
-        finally:
-            db.close()
         
     except (JWTError, Exception):
         return {
@@ -122,7 +119,7 @@ def get_smart_greeting(
 
 
 @router.get("/welcome")
-def get_welcome_message(current_user: User = Depends(get_current_user)):
+async def get_welcome_message(current_user: User = Depends(get_current_user)):
     """
     Get a simple welcome message for authenticated users.
     
