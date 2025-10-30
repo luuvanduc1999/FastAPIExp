@@ -130,6 +130,9 @@ class AuthService:
                 detail="User not found or inactive"
             )
         
+        # Always extend refresh token when refreshing access token (sliding expiration)
+        await self.refresh_token_repository.extend_token_expiry(token_refresh.refresh_token)
+        
         # Create new access token
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
@@ -140,6 +143,27 @@ class AuthService:
             access_token=access_token,
             token_type="bearer"
         )
+
+    async def extend_refresh_token(self, token: str, extend_days: int = None) -> bool:
+        """Manually extend refresh token expiry"""
+        # Get refresh token from database
+        refresh_token = await self.refresh_token_repository.get_by_token(token)
+        
+        if not refresh_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token"
+            )
+        
+        # Check if refresh token is valid
+        if not self.refresh_token_repository.is_valid(refresh_token):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token expired or revoked"
+            )
+        
+        # Extend the token
+        return await self.refresh_token_repository.extend_token_expiry(token, extend_days)
 
     async def revoke_refresh_token(self, token: str) -> bool:
         """Revoke a specific refresh token"""
@@ -169,6 +193,16 @@ class AuthService:
                 detail="User not found"
             )
         return user
+
+    async def get_current_user_by_email(self, email: str) -> User:
+        """Get current authenticated user by email"""
+        db_user = await self.user_repository.get_by_email(email)
+        if not db_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return User.model_validate(db_user)
 
     async def get_security_questions(self) -> List[SecurityQuestion]:
         """Get all active security questions"""

@@ -117,7 +117,7 @@ class SecurityQuestionRepository:
     async def get_all_active(self) -> List[SecurityQuestion]:
         """Get all active security questions"""
         result = await self.db.execute(
-            select(SecurityQuestion).filter(SecurityQuestion.is_active == True)
+            select(SecurityQuestion).filter(SecurityQuestion.is_active.is_(True))
         )
         return result.scalars().all()
 
@@ -251,3 +251,23 @@ class RefreshTokenRepository:
             return False
         
         return True
+
+    async def extend_token_expiry(self, token: str, extend_days: int = None) -> bool:
+        """Extend refresh token expiry date"""
+        if extend_days is None:
+            extend_days = settings.REFRESH_TOKEN_EXPIRE_DAYS
+            
+        refresh_token = await self.get_by_token(token)
+        if not refresh_token or refresh_token.is_revoked:
+            return False
+        
+        # Extend the expiry date
+        refresh_token.expires_at = datetime.utcnow() + timedelta(days=extend_days)
+        refresh_token.updated_at = datetime.utcnow()
+        await self.db.commit()
+        return True
+
+    def should_extend_token(self, refresh_token: RefreshToken, threshold_days: int = 7) -> bool:
+        """Check if token should be extended (when it's close to expiry)"""
+        time_until_expiry = refresh_token.expires_at - datetime.utcnow()
+        return time_until_expiry.days <= threshold_days

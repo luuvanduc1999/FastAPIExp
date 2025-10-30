@@ -5,6 +5,9 @@ from src.api.v1 import api_router
 from src.core.config import settings
 from src.core.database import create_tables
 
+# Import all models to ensure they are registered with Base.metadata
+from src.domain.auth.models import SecurityQuestion, User, RefreshToken
+
 # Create database tables on startup
 create_tables()
 

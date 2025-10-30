@@ -12,6 +12,10 @@ from src.domain.auth.schemas import (
     User, 
     UserCreate, 
     UserLogin,
+    TokenRefresh,
+    TokenExtend,
+    TokenExtendResponse,
+    AccessTokenResponse,
     SecurityQuestion,
     ForgotPasswordRequest,
     SecurityQuestionResponse,
@@ -65,6 +69,27 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
     """Login user and return access token"""
     auth_service = AuthService(db)
     return await auth_service.authenticate_user(login_data)
+
+
+@router.post("/refresh", response_model=AccessTokenResponse)
+async def refresh_token(token_refresh: TokenRefresh, db: AsyncSession = Depends(get_db)):
+    """Refresh access token using refresh token"""
+    auth_service = AuthService(db)
+    return await auth_service.refresh_access_token(token_refresh)
+
+
+@router.post("/extend-token", response_model=TokenExtendResponse)
+async def extend_refresh_token(token_extend: TokenExtend, db: AsyncSession = Depends(get_db)):
+    """Extend refresh token expiry date"""
+    auth_service = AuthService(db)
+    success = await auth_service.extend_refresh_token(
+        token_extend.refresh_token, 
+        token_extend.extend_days
+    )
+    return TokenExtendResponse(
+        message="Refresh token extended successfully" if success else "Failed to extend token",
+        success=success
+    )
 
 
 @router.get("/me", response_model=User)

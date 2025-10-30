@@ -17,15 +17,15 @@ class GUID(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        if not isinstance(value, GUID.GUID):
-            return str(GUID.GUID(value))
+        if not isinstance(value, uuid.UUID):
+            return str(uuid.UUID(value))
         return str(value)
 
     def process_result_value(self, value, dialect):
         if value is None:
             return value
-        if not isinstance(value, GUID.GUID):
-            return GUID.GUID(value)
+        if not isinstance(value, uuid.UUID):
+            return uuid.UUID(value)
         return value
 
 
@@ -33,7 +33,7 @@ class SecurityQuestion(Base):
     """Security question model"""
     __tablename__ = "security_questions"
 
-    id = Column(GUID(), primary_key=True, default=GUID.GUID4, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
     question = Column(String, nullable=False, unique=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -46,7 +46,7 @@ class User(Base):
     """User model"""
     __tablename__ = "users"
 
-    id = Column(GUID(), primary_key=True, default=GUID.GUID4, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
@@ -69,7 +69,7 @@ class RefreshToken(Base):
     """Refresh token model"""
     __tablename__ = "refresh_tokens"
 
-    id = Column(GUID(), primary_key=True, default=GUID.GUID4, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
     token = Column(Text, unique=True, index=True, nullable=False)
     user_id = Column(GUID(), ForeignKey("users.id"), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)

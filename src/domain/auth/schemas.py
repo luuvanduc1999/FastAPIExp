@@ -91,6 +91,18 @@ class TokenRefresh(BaseModel):
     refresh_token: str
 
 
+class TokenExtend(BaseModel):
+    """Schema for token extend request"""
+    refresh_token: str
+    extend_days: Optional[int] = None
+
+
+class TokenExtendResponse(BaseModel):
+    """Schema for token extend response"""
+    message: str
+    success: bool
+
+
 class AccessTokenResponse(BaseModel):
     """Schema for access token only response"""
     access_token: str
